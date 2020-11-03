@@ -1,0 +1,1 @@
+import-csv credout.txt | select -Expandproperty mfa_active

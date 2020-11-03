@@ -1,0 +1,1 @@
+Import-Csv -Delimiter " " -Header a,b,c,d,e credrep.txt foreach{ Write-Host $_.d }
