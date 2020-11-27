@@ -6,17 +6,13 @@ rem ----------------------------------------------------------------------------
 rem PREREQUISITES
 rem * AWS CLI for Windows
 rem * needs GNU Coreutils (included in the distribution), Powershell (executionpolicy off)
-
 rem for detailed info. See Readme.md
-
 REM CONNECT
 rem First authenticate with your weapon of choice, and ensure you have the .aws directory in your user-profile
 rem with the config (depicting the region of choice e.g. eu-west-1), and the credentials, which can be created 
 rem either using aws-adfs-cli-mfa. or using any tool that can download the Credentials such as the saml to sts convertor.
-
 REM PERMISSIONS
 rem minimum account privilege is read-only (describe & get)
-
 rem Revisions:
 rem V0.1 GM 17-09-2020 initial release
 rem V0.2 GM 20-09-2020 added subroutine for date handling
@@ -431,9 +427,6 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-	
-	
-
 rem Get the security groups
 aws ec2 describe-instances --query Reservations[].Instances[*].NetworkInterfaces[*].Groups[*].[GroupId] --output text >> secgroups.txt
 rem sort, and deduplicate security groups
@@ -447,9 +440,7 @@ for /F "delims=" %%a in (secgroups2.txt) do (
    )
 )
 rem 4.8.1
-
 aws ec2 describe-instances --query Reservations[].Instances[*].NetworkInterfaces[*].Groups[*].[GroupId] --output text >> secgroups.txt
-
 sort <secgroups.txt >secgroups2.txt
 	setlocal EnableDelayedExpansion
 set "prevLine="
@@ -459,7 +450,6 @@ for /F "delims=" %%a in (secgroups2.txt) do (
       set "prevLine=%%a"
    )
 )
-
 REM TEST #9 Needs improvement, currently only overpermissive IP entries are identified... Maybe make a batch/powershell hibrid??
 REM Also initial query needs tuning... For now i am giving up on this. 
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -470,11 +460,8 @@ echo ---------------------------------------------------------------------------
 echo -----------------------------manual check for wide port ranges------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 FOR /F %%A in (secgroups3.TXT) do aws ec2 describe-security-groups --group-ids %%A --query SecurityGroups[*].IpPermissions[*].IpRanges[*]."[CidrIp]" >> cidrips.txt
-
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 FOR /F %%A in (secgroups3.TXT) do aws ec2 describe-security-groups --group-ids %%A --query SecurityGroups[*].IpPermissions[*] --output table >> EVIDENCE.txt
-
 FOR /F %%A in (secgroups3.TXT) do aws ec2 describe-security-groups --group-ids %%A --query SecurityGroups[*].IpPermissions[*]."[FromPort,ToPort]" --output text >> ports.txt
 rem todo; when the first port is value A, determine whether the value of last port is too high.
 FOR /F %%A in (secgroups3.TXT) do aws ec2 describe-security-groups --group-ids %%A --query SecurityGroups[*].IpPermissions[*]."[FromPort]" --output text >> portsfrom.txt
@@ -490,8 +477,6 @@ echo ---------------------------------------------------------------------------
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "0.0/0" cidrips.txt' ) do  (
     IF %%b GEQ 1 ( 
-	
-	
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------over permissive x.x.0.0/0 Addresses found in security group----------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -500,13 +485,9 @@ echo ---------------------------------------------------------------------------
 echo --------------------OK - No x.x.0.0/0 Addresses found in security group---------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 )
-	
-	
 	)
 for /f "tokens=3" %%b in ('find /c "0.0/8" cidrips.txt' ) do  (
     IF %%b GEQ 1 ( 
-	
-	
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ------------------over permissive x.x.0.0/8 Addresses found in security group---------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -515,13 +496,9 @@ echo ---------------------------------------------------------------------------
 echo --------------------OK - No x.x.0.0/8 Addresses found in security group---------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 )
-	
-	
 	)
 for /f "tokens=3" %%b in ('find /c "0.0/16" cidrips.txt' ) do  (
     IF %%b GEQ 1 ( 
-	
-	
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------over permissive x.x.0.0/16 Addresses found in security group---------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -530,8 +507,6 @@ echo ---------------------------------------------------------------------------
 echo ---------------------OK - No x.x.0.0/16 Addresses found in security group-------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 )
-	
-	
 	)
 	
 for /f "tokens=3" %%b in ('find /c "0.0/24" cidrips.txt' ) do  (
@@ -546,20 +521,13 @@ echo ---------------------------------------------------------------------------
 echo ----------------------OK - No x.x.0.0/24 Addresses found in security group------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 )
-	
-	
 	)
-	
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------Manual Check, are there any wide open ports ----------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-	
 rem 4.2.1
-
 FOR /F %%A in (secgroups3.TXT) do aws ec2 describe-security-groups --group-ids %%A --query SecurityGroups[*].IpPermissions[*]."[FromPort,IpProtocol,ToPort]" --output table >> EVIDENCE.txt 
-
 del secgroups*.txt /s
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #7----------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -569,21 +537,14 @@ echo ---------------------------------------------------------------------------
 echo ----------------------------Note that this test is incomplete-------------------------------- >> EVIDENCE.TXT
 echo ---------------------------- Manual verification is needed! --------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
 FOR /F %%A in (ec2.TXT) do aws ec2 describe-instances --instance-ids %%A --query Reservations[*].Instances[*].IamInstanceProfile.[Arn] --output text >> ARNS.txt
-
-
 md delim
 for /f "tokens=1,2 delims=/" %%a in (ARNS.TXT) do (
   set BEFORE_UNDERSCORE=%%a
   set AFTER_UNDERSCORE=%%b
 echo %%b >> .\delim\names.txt
 )
-
-
 FOR /F %%A in (.\delim\Names.TXT) do aws iam list-attached-role-policies --role-name %%A --output text >> iampolicies.txt
-
-
 for /f "tokens=3" %%b in ('find /c "Admin" iampolicies.txt') do  (
     IF %%b GEQ 1 (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -596,30 +557,23 @@ echo ---------------------------------------------------------------------------
 echo ----------------------- Check lines below for Policies that contain admin-------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 )
-    	
+   	
 	)
   )
-
 type iampolicies.txt >> EVIDENCE.TXT
-  
 for /f "tokens=1,2 delims=	" %%a in (iampolicies.txt) do (
   set BEFORE_UNDERSCORE=%%a
   set AFTER_UNDERSCORE=%%b
 echo %%b >> .\delim\names2.txt
 )
-
 for /f "tokens=1,2 delims=/" %%a in (.\delim\names2.TXT) do (
   set BEFORE_UNDERSCORE=%%a
   set AFTER_UNDERSCORE=%%b
 echo %%b >> .\delim\names3.txt
 )
-
-
-
  set f1=.\delim\names.txt
  set f2=.\delim\names3.txt
  set "sep=:
-
  (
    for /f "delims=" %%a in (%f1%) do (
       setlocal enabledelayedexpansion
@@ -629,9 +583,7 @@ echo %%b >> .\delim\names3.txt
    )
  )<%f2%
 
- 
 FOR /F %%A in (.\delim\Names.TXT) do aws iam list-role-policies --role-name %%A --output text >> iampolicies2.txt
- 
 for /f "tokens=1,2 delims=	" %%a in (iampolicies2.txt) do (
   set BEFORE_UNDERSCORE=%%a
   set AFTER_UNDERSCORE=%%b
@@ -641,8 +593,6 @@ echo %%b >> .\delim\names4.txt
  set f1=.\delim\names.txt
  set f2=.\delim\names4.txt
  set sep=: 
- 
-
  (
    for /f "delims=" %%a in (%f1%) do (
       setlocal enabledelayedexpansion
@@ -651,8 +601,7 @@ echo %%b >> .\delim\names4.txt
       endlocal
    )
  )<%f2%
- 
- sort <de.txt >de2.txt
+  sort <de.txt >de2.txt
 	setlocal EnableDelayedExpansion
 set "prevLine="
 for /F "delims=" %%a in (de2.txt) do (
@@ -662,12 +611,8 @@ for /F "delims=" %%a in (de2.txt) do (
    )
 )
 
-rem pmapper graph --create
-
-rem pmapper analysis --output-type text >> EVIDENCE.TXT
 
 rem some policies cannot be downloaded, therefore additional manual verification is needed!
- 
 for /f "tokens=1,2 delims=:" %%a in (de4.txt) do (
   set BEFORE_UNDERSCORE=%%a
   set AFTER_UNDERSCORE=%%b
@@ -677,7 +622,6 @@ for /f "tokens=1,2 delims=:" %%a in (de4.txt) do (
 aws iam get-role-policy --role-name %%a --policy-name %%b >> EVIDENCE.txt
 )
 rem 4.3.1 VPC Endpoint Access 
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #8----------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -691,9 +635,7 @@ echo ---------------------------------------------------------------------------
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 aws ec2 describe-vpc-endpoints --query VpcEndpoints[*].[VpcEndpointId] --output text >> vpc.txt
 aws ec2 describe-vpc-endpoints --query VpcEndpoints[*] --output table >> EVIDENCE.TXT
-
 FOR /F %%A in (vpc.TXT) do aws ec2 describe-vpc-endpoints --vpc-endpoint-ids %%A --query VpcEndpoints[*].[PolicyDocument] --output text >> vpcpolicies.txt
-
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "*" .\vpcpolicies.txt') do  (
     IF %%b GEQ 1 (
@@ -715,13 +657,10 @@ echo ---------------------------------------------------------------------------
 echo ---------------------------------Check VPC flow logs----------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
 rem 4.3.2 Gebrek aan VPC flow logs
 aws ec2 describe-vpcs --query Vpcs[*].[VpcId] --output text >> vpcid.txt
 FOR /F %%A in (vpcid.txt) do aws ec2 describe-flow-logs --filter Name=resource-id,Values=%%A --output table >> EVIDENCE.TXT
 FOR /F %%A in (vpcid.txt) do aws ec2 describe-flow-logs --filter Name=resource-id,Values=%%A >> flowlog.txt
-
-
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "[]" .\flowlog.TXT') do  (
     IF %%b GEQ 1 (
@@ -737,11 +676,7 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-  
-rem del flowlog.txt /s
 del vpcid.txt /s
-
-
 rem TODO: 4.4.1	Open storage accounts 
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #10.1---------------------------------------------- >> EVIDENCE.TXT
@@ -750,13 +685,8 @@ echo ---------------------------------Check open s3 buckets --------------------
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 aws s3api list-buckets --query Buckets[*].[Name] --output text >> buckets.txt
-
-
 FOR /F %%A in (buckets.txt) do aws s3api get-bucket-acl --bucket %%A --output table >> EVIDENCE.TXT
-
 FOR /F %%A in (buckets.txt) do aws s3api get-bucket-acl --bucket %%A >> s3grants.txt
-
-
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "AllUsers" .\s3grants.TXT') do  (
     IF %%b GEQ 1 (
@@ -772,19 +702,15 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-  
-  
+ 
 rem 4.4.2 S3 bucket encryption
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #10.2--------------------------------------------->> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------Check s3 buckets encryption --------------------------------->> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
 FOR /F %%A in (buckets.txt) do aws s3api get-bucket-encryption	--bucket %%A --output text >> bucketencryption.txt & if errorlevel=1 echo notfound >> bucketencryption.txt
-
 FOR /F %%A in (buckets.txt) do aws s3api get-bucket-encryption --bucket %%A >> EVIDENCE.TXT & if errorlevel=1 echo %%A notfound >> EVIDENCE.TXT
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "notfound" bucketencryption.TXT') do  (
@@ -792,7 +718,7 @@ for /f "tokens=3" %%b in ('find /c "notfound" bucketencryption.TXT') do  (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------------------------NOK -%%b Unencrypted S3 buckets found--------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-		
+
 	) ELSE (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------------------------OK - %%b encrypted buckets found-------------------------- >> EVIDENCE.TXT
@@ -801,12 +727,7 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-
 rem 4.4.3	S3 bucket SSL/TLS
-
-
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #10.3-------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -819,13 +740,8 @@ echo --------------------------Determine whether False=Deny (meaning that SSL is
 echo --------------------------Determine whether True=Allow (meaning that SSL is enforced)-------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------Any conflict of both means that unencrypted connections are allowed------ >> EVIDENCE.TXT
-
-
-  
 FOR /F %%A in (buckets.txt) do echo %%A >> bucket-policy.txt & aws s3api get-bucket-policy --bucket %%A  --output text | jq -r ".Statement" >> bucket-policy.txt
-
 FOR /F %%A in (buckets.txt) do echo %%A >> EVIDENCE.TXT & aws s3api get-bucket-policy --bucket %%A --output text | jq -r ".Statement" >> EVIDENCE.TXT
-
 rem TODO: 4.5.1	Listener Security
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #11---------------------------------------------- >> EVIDENCE.TXT
@@ -852,8 +768,6 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-
 rem TODO: 4.6.1	Public & Encrypted Snapshots
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #12.1-------------------------------------------- >> EVIDENCE.TXT
@@ -862,20 +776,14 @@ echo ---------------------------------Check public snapshots -------------------
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 rem aws ec2 describe-snapshots --owner-ids %account%--filters Name=status,Values=completed	--output table	--query 'Snapshots[*].SnapshotId'
-
 aws ec2 describe-snapshots --owner-ids %account% --filters Name=status,Values=completed --output text --query Snapshots[*].[SnapshotId] >> snapshots.txt
-
-
 for /f "tokens=3" %%b in ('find /c "snap" snapshots.txt') do  ( echo %%b snapshots in %account% %alias% >> EVIDENCE.TXT)
 IF %%b GEQ 90000 (
 echo SNAPSHOT LIMIT ALMOST REACHED 100000 allowed >> EVIDENCE.TXT
 ) ELSE (
 echo SNAPSHOT LIMIT NOT REACHED 100000 allowed>> EVIDENCE.TXT)
-
 FOR /F %%A in (snapshots.txt) do echo %%A >> Snappublic.txt & aws ec2 describe-snapshot-attribute --snapshot-id %%A --attribute createVolumePermission --query "CreateVolumePermissions[]" >> Snappublic.txt
-
 Setlocal EnableDelayedExpansion
-
 for /f "tokens=3" %%b in ('find /c "all" Snappublic.TXT') do  (
     IF %%b GEQ 1 (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -891,21 +799,15 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
 rename spappublic snap-%alias%-%account%.txt & move snap-%alias%-%account%.txt %alias%
-  
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #12.2-------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------Check encrypted EBS snapshots ------------------------------ >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
 aws ec2 describe-snapshots --owner-ids %account% --query Snapshots[*].[Encrypted] --output text >> encsnap.txt
 aws ec2 describe-snapshots --owner-ids %account% --query Snapshots[*].[SnapshotId,Encrypted] --output text >> EVIDENCE.TXT
-
-
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "False" encsnap.txt.TXT') do  (
     IF %%b GEQ 1 (
@@ -922,21 +824,15 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-  
 rem TODO: 4.7.1	EFS encryptie 
-
 aws efs describe-file-systems --output text --query FileSystems[*].[FileSystemId] >> efsfile.txt
 FOR /F %%A in (efsfile.txt) do aws efs describe-file-systems --file-system-id %%A --query FileSystems[*].Encrypted --output text >> efsenc.txt
-
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #13 >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------Check encrypted efs filesystems----------------------------  >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
-
 aws efs describe-file-systems --query FileSystems[*]."[Name,Encrypted]" --output text >> EVIDENCE.TXT
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "False" efsenc.txt') do  (
@@ -944,7 +840,7 @@ for /f "tokens=3" %%b in ('find /c "False" efsenc.txt') do  (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------------------------NOK -%%b unencrypted EFS filesystems >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-		
+	
 	) ELSE (
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo -----------------------------------OK - %%b No unencrypted EFS found >> EVIDENCE.TXT
@@ -953,8 +849,6 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-rem TODO: 4.9.1	Gebrek aan Identity and Access Management 
 rem AWS IAM password beleid
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------TEST #14.0 IAM password policy >> EVIDENCE.TXT
@@ -975,15 +869,12 @@ echo -------------------------OK -Passwordlength is %passlength% >> EVIDENCE.TXT
 	) ELSE (
 
 echo -------------------------NOK -Passwordlength is %passlength%>> EVIDENCE.TXT
-
 )
     	
 	)
-
 FOR /F "tokens=*" %%F IN ('aws iam get-account-password-policy --query PasswordPolicy.RequireSymbols') DO (
 SET RequireSymbols=%%F
 )
-
 echo %RequireSymbols%
  IF %RequireSymbols% == true (
 
@@ -1015,18 +906,14 @@ echo -------------------------NOK -RequireNumbers is %RequireNumbers% >> EVIDENC
 )
     	
 	)
-	
-	
-	
+
 		FOR /F "tokens=*" %%F IN ('aws iam get-account-password-policy --query PasswordPolicy.RequireUppercaseCharacters') DO (
 SET RequireUppercaseCharacters=%%F
 )
-
 echo %RequireUppercaseCharacters%
  IF %RequireUppercaseCharacters% == true (
 
 echo -------------------------OK -RequireUppercaseCharacters is %RequireUppercaseCharacters% >> EVIDENCE.TXT
-
 		
 	) ELSE (
 
@@ -1035,7 +922,6 @@ echo -------------------------NOK -RequireUppercaseCharactersis is %RequireUpper
 )
     	
 	)
-	
 	
 		FOR /F "tokens=*" %%F IN ('aws iam get-account-password-policy --query PasswordPolicy.RequireLowercaseCharacters') DO (
 SET RequireLowercaseCharacters=%%F
@@ -1054,11 +940,7 @@ echo -------------------------NOK -RequireLowercaseCharacters is %RequireLowerca
 )
     	
 	)
-	
-	
-	
-	
-	
+		
 		FOR /F "tokens=*" %%F IN ('aws iam get-account-password-policy --query PasswordPolicy.AllowUsersToChangePassword') DO (
 SET AllowUsersToChangePassword=%%F
 )
@@ -1133,9 +1015,6 @@ echo -------------------------NOK -PasswordReusePrevention is %PasswordReusePrev
     	
 	)
 	
-	
-	
-
 rem AWS IAM Users with administrative permissions
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ----------------------TEST #14.1 IAM users with admin permissions---------------------------- >> EVIDENCE.TXT
@@ -1160,18 +1039,13 @@ echo ---------------------------------------------------------------------------
 	)
   )
 rem Access Keys Rotation 
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ----------------------TEST #14.2 IAM Users with access keys --------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
 FOR /F %%A in (usernames.txt) do aws iam list-access-keys --user-name %%A --query AccessKeyMetadata[*].[CreateDate] --output text >> accesskeyrotation.txt
 FOR /F %%A in (usernames.txt) do aws iam list-access-keys --user-name %%A --query AccessKeyMetadata[*]."[UserName,CreateDate]" --output text >> EVIDENCE.TXT
-
-
 set year=%date:~6,4%
 set refdatemonth=%date:~6,4%%date:~3,2%
-
 setlocal enabledelayedexpansion
 for /f "delims=" %%a in (accesskeyrotation.txt) do (
     set "line=%%a"
@@ -1186,7 +1060,6 @@ setlocal enableDelayedExpansion
       echo !line! >> accesskeyrotation3.txt
    )
 )
-
 set month=%date:~3,2%
 echo %month%
 IF %month% EQU 06 (
@@ -1238,11 +1111,9 @@ IF %month% EQU 07 (
 	) ELSE ( echo %month%
 )
 echo %newmonth%
-
 echo %datemonth%
 set reference=%year%%newmonth%
 echo %reference%
-
 sort <accesskeyrotation3.txt >accesskeyrotation33.txt
 setlocal EnableDelayedExpansion
 set "prevLine="
@@ -1252,8 +1123,6 @@ for /F "delims=" %%a in (accesskeyrotation33.txt) do (
       set "prevLine=%%a"
    )
 )
-
-
 Setlocal EnableDelayedExpansion
 for /f %%b in (accesskeyrotation4.txt) do  (
     IF %%b LSS %reference% (
@@ -1284,12 +1153,9 @@ echo ---------------------------------------------------------------------------
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 aws iam generate-credential-report
 aws iam get-credential-report --query Content --output text >> credreport.txt
-powershell ./decodebase64.ps1
-
-powershell ./credreport.ps1 >> EVIDENCE.TXT
-
-powershell ./passlast.ps1 >> lastpass.txt
-
+powershell  -ExecutionPolicy unrestricted ./decodebase64.ps1
+powershell  -ExecutionPolicy unrestricted ./credreport.ps1 >> EVIDENCE.TXT
+powershell  -ExecutionPolicy unrestricted ./passlast.ps1 >> lastpass.txt
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "N" lastpass.txt') do  (
     IF %%b GEQ 1 (
@@ -1321,7 +1187,6 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
 for /f "tokens=1 delims=N/A" %%a in (lastpass.txt) do (echo %%a >> lastpass2.txt)
 for /f "tokens=1 delims=no_information" %%a in (lastpass2.txt) do (echo %%a >> lastpass3.txt) 
 
@@ -1408,8 +1273,6 @@ for /F "delims=" %%a in (lastpass55.txt) do (
       set "prevLine=%%a"
    )
 )
-
-
 Setlocal EnableDelayedExpansion
 for /f %%b in (lastpass6.txt) do  (
     IF %%b LSS %reference% (
@@ -1424,10 +1287,7 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-
-
-powershell ./accesskey.ps1 >> accesskeyactive.txt
+powershell  -ExecutionPolicy unrestricted ./accesskey.ps1 >> accesskeyactive.txt
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "true" accesskeyactive.txt') do  (
     IF %%b GEQ 1 (
@@ -1443,23 +1303,14 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-
-
-rem type credout.txt >> EVIDENCE.TXT
-
 rem Hardware MFA for AWS Root Account & LAST use of MFA
-
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #14.4-------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------check MFA -------------------------------------------- >> EVIDENCE.TXT
-
 aws iam list-virtual-mfa-devices --query VirtualMFADevices[*].User[]."[Arn,PasswordLastUsed]" --output text >> EVIDENCE.TXT
 aws iam list-virtual-mfa-devices --query VirtualMFADevices[*].User[]."[PasswordLastUsed]" --output text >> rootlastused.TXT
-
-powershell ./credmfa.ps1 >> mfa.txt
-
+powershell  -ExecutionPolicy unrestricted ./credmfa.ps1 >> mfa.txt
 Setlocal EnableDelayedExpansion
 for /f "tokens=3" %%b in ('find /c "false" mfa.txt') do  (
     IF %%b GEQ 1 (
@@ -1475,7 +1326,6 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
 set year=%date:~6,4%
 set refdatemonth=%date:~6,4%%date:~3,2%
 
@@ -1559,8 +1409,6 @@ for /F "delims=" %%a in (rootlastused33.txt) do (
       set "prevLine=%%a"
    )
 )
-
-
 Setlocal EnableDelayedExpansion
 for /f %%b in (rootlastused4.txt) do  (
     IF %%b GEQ %reference% (
@@ -1576,10 +1424,9 @@ echo ---------------------------------------------------------------------------
 	)
   )
 
-rem AWS keys exposure 4.10.1
 
 rename credout.txt %account%-%alias%credreport.csv
-
+rem AWS keys exposure 4.10.1
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #15.1-------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
@@ -1609,16 +1456,12 @@ echo ---------------------------------------------------------------------------
     	
 	)
   )
-
-
 rem CMK Key rotation (only applies to Customer Managed Keys). 4.10.11
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------------TEST #15.2-------------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
 echo ---------------------------------Check KMS Key rotation-------------------------------------- >> EVIDENCE.TXT
 echo --------------------------------------------------------------------------------------------- >> EVIDENCE.TXT
-
-
 FOR /F %%A in (keyids.txt) do echo %%A >> EVIDENCE.TXT & aws kms get-key-rotation-status --key-id %%A --output text >> EVIDENCE.TXT
 FOR /F %%A in (keyids.txt) do aws kms get-key-rotation-status --key-id %%A --output text >> rotation.txt
 Setlocal EnableDelayedExpansion
@@ -1663,8 +1506,6 @@ rem echo -----------------------------------------------------------------------
 rem aws ssm describe-instance-information --query InstanceInformationList[].[InstanceId] --output text >> SSMassociation.txt
 rem aws ec2 describe-instances --query "Reservations[].Instances[*].InstanceId" --output text >> ec2.txt
 rem grep -v -F -x -f SSMassociation.txt ec2.txt >> EVIDENCE.TXT & echo NOT ASSOCIATED >> EVIDENCE.TXT
-
-
 md %alias%
 del .\delim\*.txt
 rd delim
